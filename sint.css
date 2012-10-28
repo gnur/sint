@@ -1,0 +1,14 @@
+body {
+    background-color: #FFF9FC;
+    cursor: default;
+}
+#article {
+    width: 700px;
+    float: left;
+
+}
+#other {
+    width: 200px;
+    float: left;
+
+}
