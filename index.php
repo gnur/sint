@@ -113,12 +113,12 @@ if(isset($_POST['action'])){
 				$naam = strtolower(mysql_real_escape_string($_POST['namen'][$i]));
 				$query = "SELECT count(id) FROM sint_gebruikers WHERE email = '" . $email . "'";
 				$bestaat = mysql_result(mysql_query($query), 0);
-                echo md5($naam), " heeft ", md5($mensen[$i]), "<br />";
 				if($bestaat){
 					mysql_query("UPDATE sint_gebruikers SET acties = CONCAT(acties, '," . $id . "') WHERE email = '" . $email . "'");
 					$outpstring .= $email . " had al een account, en is toegevoegd. <br />";
 					$gebruiker = mysql_fetch_row(mysql_query("SELECT id,acties FROM sint_gebruikers WHERE email = '" . $email . "'"));
 					mysql_query("UPDATE sint_wensen SET acties = '" . $gebruiker['1'] . "' WHERE wenser = " . $gebruiker['0']);
+					echo $naam, " heeft ", $mensen[$i], "<br />";
 				}
 				else {
 					$outpstring .= $email. " heeft nog geen account. Er is een e-mail verzonden met een activatie verzoek. <br />";
@@ -126,8 +126,7 @@ if(isset($_POST['action'])){
 					$wachtwoordmd = md5($wachtwoord);
 					mysql_query("INSERT INTO sint_gebruikers (naam,email,ww,acties) VALUES ('" . $naam . "', '" .strtolower($email) . "', '" . $wachtwoordmd . "', '" . $id . "')");
 					
-				}
-				if(mail($email, "Surprise! " . $actienaam, "Hallo " . $naam . ", 
+					if(mail($email, "Surprise! " . $actienaam, "Hallo " . $naam . ", 
 Iemand heeft je toegevoegd aan de surprise site sint.egdk.nl.
 Neem snel een kijkje!
 
@@ -140,9 +139,11 @@ Je moet iets maken voor: " . $mensen[$i] . "
 Als je vragen hebt, kun je deze altijd naar sint.egdk.nl sturen.
 
 Met pepernotige groetjes,
-Cyber piet.", 'From: Sint op egdk.nl <sint.egdk.nl>' . "\r\n")){
-                    echo "t is verzonden";
-                }
+Cyber piet.", 'From: Sint op gnur.nl <sint.egdk.nl>' . "\r\n")){
+	echo "t is verzonden";
+	
+}
+				}
 				
 			}
 		}
@@ -440,6 +441,25 @@ Cyber piet.", 'From: Sint op egdk.nl <sint.egdk.nl>' . "\r\n")){
 				
 			}
 		}
+		elseif($_GET['actie'] == "printen"){
+            $id = mysql_real_escape_string($_GET['id']);
+            $naam = mysql_result(mysql_query("SELECT naam FROM sint_acties WHERE id = " . $id . " limit 1"), 0);
+            echo "<h1>", $naam, "</h1>";
+            $wensen = mysql_query("SELECT wenser,wens,gekocht,id FROM sint_wensen WHERE acties LIKE '%" . $id . "%' AND wenser != " . $_SESSION['id'] . " ORDER BY wenser");
+            $gebruiker = -1;
+            echo "<ul>";
+            while($wens = mysql_fetch_row($wensen)){
+                if ($wens[0] != $gebruiker){
+                    echo "</ul><br /><strong>" . $_SESSION['gebruikers'][$wens[0]] . " wil graag: </strong><br /><ul>";
+                    $gebruiker = $wens[0];
+                }
+                if ($wens[2] % 2 == 0) {
+                    echo "<li>", stripslashes($wens[1]), "</li>";
+                }
+            }
+            echo "</ul>";
+            die();
+        }
 		elseif($_GET['actie'] == "uitgenodigt"){
 			echo '<h1>Nieuwe surprise toegevoegd!</h1>';
 			echo '<p>Als je jezelf hebt toegevoegd aan deze surprise moet je opnieuw inloggen om de nieuwe actie te kunnen zien. <br /><br />';
@@ -462,7 +482,7 @@ Cyber piet.", 'From: Sint op egdk.nl <sint.egdk.nl>' . "\r\n")){
 				
 				$query = mysql_query("SELECT naam,id FROM sint_acties WHERE id = " . $_SESSION['acties'] ."");
 				while($actie = mysql_fetch_row($query)){
-					echo "<a href='index.php?actie=lijst&id=" . $actie[1] . "'>" . $actie[0] . "</a><br />";
+					echo "<a href='index.php?actie=lijst&id=" . $actie[1] . "'>" . $actie[0] . "</a> (<a href='index.php?actie=printen&id=" . $actie[1] . "'>printen</a>)<br />";
 				}
 			}
 		
